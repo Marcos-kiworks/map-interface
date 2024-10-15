@@ -56,9 +56,91 @@ public class App {
          * colección que agrupe nombres de personas, separados por punto y coma, por género
          * 
          */
-
         Map<Genero, String> nombresPorGenero = personas.stream()
-            .collect(Collectors.groupingBy(Persona::getGenero, Collectors.mapping(Persona::getNombre, Collectors.joining(";"))));
+                .collect(Collectors.groupingBy(Persona::getGenero, Collectors.mapping(Persona::getNombre, Collectors.joining(";"))));
+
+        System.out.println(nombresPorGenero);
+
+        /* Un Map Interface no es realmente una colección porque no hereda de la interfaz Collection
+         * pero se puede tratar como tal utilizando las llamadas vistas de colección ( Collection Views ),
+         * para en cada momento acceder a las claves del mapa, a los valores o a ambos.
+         * 
+         * https://docs.oracle.com/javase/tutorial/collections/interfaces/map.html
+         */
+
+ /* Recorrer el mapa de personas agrupadas por Género, para mostrar solamente
+          * las personas que tengan un salario superior a los 4000 euros
+         */
+
+ /* Utilizando una sentencia for mejorado */
+        for (Map.Entry<Genero, List<Persona>> entry : personasPorGenero.entrySet()) {
+            Genero key = entry.getKey();
+            List<Persona> value = entry.getValue();
+
+            System.out.println(" Del Género " + key);
+            System.out.println(" Personas con salario superior a 4000 euros");
+
+            for (Persona persona : value) {
+                if (persona.getSalario() > 4000) {
+                    System.out.println(persona);
+                }
+            }
+        }
+
+        /* Utilizando operaciones de agregado */
+        System.out.println(" Utilizando operaciones de agregado ");
+
+        personasPorGenero.entrySet().stream().forEach(entry -> {
+            System.out.println(" Del Género " + entry.getKey());
+            System.out.println(" Personas con salario superior a 4000 euros ");
+
+            entry.getValue().stream().filter(p -> p.getSalario() > 4000).forEach(System.out::println);
+        });
+
+        /* Ejercicio 1: Crear una colección que agrupe Personas por Género y edad de la persona*/
+
+ /* Posteriormente recorrer la colección obtenida y mostrar solamente las personas 
+           * del género HOMBRE, que tengan un salario superior a la media */
+
+ /* http://www.java2s.com/Tutorials/Java/Java_Stream/0220__Java_Stream_Map.htm */
+        Map<Genero, Map<Long, List<Persona>>> personasGéneroEdad = personas.stream()
+                .collect(Collectors.groupingBy(Persona::getGenero,
+                        Collectors.groupingBy(Persona::edad)));
+
+        /* Recuperar el salario promedio */
+        final Double salarioMedio = personas.stream().mapToDouble(Persona::getSalario).average().orElseThrow(() -> new RuntimeException());
+        /* Recorrer la colección personasGeneroEdad */
+        personasGéneroEdad.entrySet().stream().forEach(entry1 -> {
+            System.out.println(" Genero : " + entry1.getKey());
+            Map<Long, List<Persona>> entry2 = entry1.getValue();
+
+            entry2.entrySet().stream().forEach(entry -> {
+                entry.getValue().stream().filter(persona -> persona.getGenero().equals(Genero.HOMBRE)
+                        && persona.getSalario() > salarioMedio).forEach(System.out::println);
+            });
+        });
+
+        /* Recorrer la colección personasGeneroEdad otra forma*/
+        personasGéneroEdad.entrySet().stream().forEach(entry3 -> {
+            Genero genero = entry3.getKey();
+            System.out.println(" Género :" + genero);
+
+            Map<Long, List<Persona>> entry4 = entry3.getValue();
+
+            // var persons = entry4.values();
+            // persons.stream().flatMap(lista -> lista.stream())
+            // .filter(persona -> persona.getGenero().equals(Genero.HOMBRE) && persona.getSalario() > salarioMedio)
+            // .forEach(System.out::println);
+
+                /* Distinta forma, mismo resultado */
+
+            entry4.entrySet().stream().forEach(entry -> {
+                List<Persona> persons = entry.getValue();
+                persons.stream().filter(p -> p.getGenero().equals(Genero.HOMBRE)
+                        && p.getSalario() > salarioMedio)
+                        .forEach(System.out::println);
+            });
+        });
 
     }
 }
